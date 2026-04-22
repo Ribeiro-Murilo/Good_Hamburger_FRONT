@@ -17,6 +17,10 @@
       "PackagePath": "staticwebassets/bootstrap/bootstrap.min.css.map"
     },
     {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/css/hamburger-theme.css",
+      "PackagePath": "staticwebassets/css/hamburger-theme.css"
+    },
+    {
       "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/favicon.png",
       "PackagePath": "staticwebassets/favicon.png"
     },

@@ -1,0 +1,108 @@
+@using GoodHamburgerFront.Models
+@using GoodHamburgerFront.Services
+
+<div class="carrinho-container">
+    <div class="carrinho-header">Carrinho</div>
+
+    @if (Itens == null || Itens.Count == 0)
+    {
+        <div class="carrinho-vazio">
+            <div class="carrinho-vazio-icon">🛒</div>
+            <p>Seu carrinho está vazio</p>
+        </div>
+    }
+    else
+    {
+        <div class="carrinho-itens">
+            @foreach (var item in Itens)
+            {
+                <div class="item-carrinho">
+                    <div class="item-carrinho-info">
+                        <div class="item-carrinho-nome">@item.Nome</div>
+                        <div class="item-carrinho-preco">R$ @item.Valor.ToString("F2")</div>
+                    </div>
+                    <div class="item-carrinho-acoes">
+                        <button class="btn-remover" @onclick="@(() => OnRemoverItem(item.Id))">
+                            Remover
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="carrinho-resumo">
+            <div class="resumo-linha">
+                <span class="resumo-label">Subtotal:</span>
+                <span class="resumo-valor">R$ @ValorTotal.ToString("F2")</span>
+            </div>
+            @if (ComDesconto)
+            {
+                <div class="resumo-linha">
+                    <span class="resumo-label">Desconto:</span>
+                    <span class="resumo-valor" style="color: var(--cor-sucesso);">-R$ @(ValorTotal - ValorFinal).ToString("F2")</span>
+                </div>
+            }
+            <div class="resumo-linha resumo-total">
+                <span class="resumo-label">Total:</span>
+                <span class="resumo-valor">R$ @ValorFinal.ToString("F2")</span>
+            </div>
+        </div>
+
+        <div class="carrinho-acoes">
+            <button class="btn-primario" @onclick="OnFecharPedido">
+                @if (Carregando)
+                {
+                    <span class="loading"></span>
+                }
+                else
+                {
+                    <span>Finalizar Pedido</span>
+                }
+            </button>
+            <button class="btn-secundario" @onclick="OnCancelarPedido">
+                Cancelar
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<ItemPedidoResponseDto>? Itens { get; set; }
+
+    [Parameter]
+    public double ValorTotal { get; set; }
+
+    [Parameter]
+    public double ValorFinal { get; set; }
+
+    [Parameter]
+    public bool ComDesconto { get; set; }
+
+    [Parameter]
+    public bool Carregando { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnRemoverItemCallback { get; set; }
+
+    [Parameter]
+    public EventCallback OnFecharPedidoCallback { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancelarPedidoCallback { get; set; }
+
+    private async Task OnRemoverItem(int itemId)
+    {
+        await OnRemoverItemCallback.InvokeAsync(itemId);
+    }
+
+    private async Task OnFecharPedido()
+    {
+        await OnFecharPedidoCallback.InvokeAsync();
+    }
+
+    private async Task OnCancelarPedido()
+    {
+        await OnCancelarPedidoCallback.InvokeAsync();
+    }
+}

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "z6fY9ID6zyJ6QEUH4Sv2ZYucvQorfs0olgDuWz7hmso=",
+  "Hash": "wf2td+hi36P67QIHUJfsZyrbArW56V1Rqu2/MM0EZAE=",
   "Source": "GoodHamburgerFront",
   "BasePath": "_content/GoodHamburgerFront",
   "Mode": "Default",
@@ -110,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/bootstrap/bootstrap.min.css.map"
+    },
+    {
+      "Identity": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/css/hamburger-theme.css",
+      "SourceId": "GoodHamburgerFront",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/",
+      "BasePath": "_content/GoodHamburgerFront",
+      "RelativePath": "css/hamburger-theme.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/css/hamburger-theme.css"
     },
     {
       "Identity": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/favicon.png",

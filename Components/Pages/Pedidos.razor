@@ -1,0 +1,460 @@
+@page "/"
+@rendermode InteractiveServer
+@using GoodHamburgerFront.Models
+@using GoodHamburgerFront.Services
+@using GoodHamburgerFront.Components.Shared
+@inject CardapioService CardapioService
+@inject PedidoService PedidoService
+@inject IJSRuntime JSRuntime
+
+
+<div class="container-principal">
+    <div class="secao-menu">
+        <h1 style="margin-bottom: 20px; color: var(--cor-primaria);">Good Hamburger</h1>
+
+        @if (!string.IsNullOrEmpty(MensagemErro))
+        {
+            <div class="alerta alerta-erro">
+                <div class="alerta-icone">⚠️</div>
+                <div>@MensagemErro</div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(MensagemSucesso))
+        {
+            <div class="alerta alerta-sucesso">
+                <div class="alerta-icone">✓</div>
+                <div>@MensagemSucesso</div>
+            </div>
+        }
+
+        <div class="menu-filtros">
+            <input type="text" class="input-busca" placeholder="Buscar produtos..." value="@TermoBusca" @oninput="@((ChangeEventArgs e) => OnBuscaChange((string?)e.Value))" />
+        </div>
+
+        <div class="menu-filtros">
+            <button class="filtro-tipo @(TipoSelecionado == null ? "ativo" : "")" @onclick="@(() => OnSelecionarTipo(null))">
+                Todos
+            </button>
+            @if (TiposItem != null)
+            {
+                @foreach (var tipo in TiposItem)
+                {
+                    <button class="filtro-tipo @(TipoSelecionado?.Id == tipo.Id ? "ativo" : "")" @onclick="@(() => OnSelecionarTipo(tipo))">
+                        @tipo.Nome
+                    </button>
+                }
+            }
+        </div>
+
+        @if (Menu == null)
+        {
+            <div style="text-align: center; padding: 40px;">
+                <div class="loading"></div>
+            </div>
+        }
+        else if (MenuFiltrado.Count == 0)
+        {
+            <div style="text-align: center; padding: 40px; color: var(--cor-texto-secundario);">
+                <p>Nenhum produto encontrado</p>
+            </div>
+        }
+        else
+        {
+            <div class="grade-produtos">
+                @foreach (var produto in MenuFiltrado)
+                {
+                    <div class="card-produto">
+                        <div class="card-produto-imagem">🍔</div>
+                        <div class="card-produto-info">
+                            <div class="card-produto-nome">@produto.Nome</div>
+                            <div class="card-produto-tipo">@produto.Tipo?.Nome</div>
+                            <div class="card-produto-rodape">
+                                <span class="card-produto-preco">R$ @produto.Preco.ToString("F2")</span>
+                                <button class="btn-adicionar" @onclick="@(() => AdicionarAoCarrinho(produto.Id))">
+                                    + Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="secao-carrinho">
+        @if (PedidoAtual == null)
+        {
+            <div style="text-align: center; padding: 40px; background: var(--cor-fundo-secundaria); border-radius: 12px; color: var(--cor-texto-secundario);">
+                <p>Adicione itens ao carrinho para começar</p>
+            </div>
+        }
+        else
+        {
+            <CarrinhoComponent
+                Itens="PedidoAtual.Itens ?? new()"
+                ValorTotal="PedidoAtual.ValorTotal"
+                ValorFinal="PedidoAtual.ValorFinal"
+                ComDesconto="PedidoAtual.ComDesconto"
+                Carregando="Carregando"
+                OnRemoverItemCallback="RemoverItem"
+                OnFecharPedidoCallback="FecharPedido"
+                OnCancelarPedidoCallback="CancelarPedido">
+            </CarrinhoComponent>
+        }
+
+        <PedidosAnteriorComponent
+            PedidosAnteriores="PedidosAnterioresFiltrados"
+            OnSelecionarPedidoCallback="SelecionarPedidoAnterior">
+        </PedidosAnteriorComponent>
+    </div>
+</div>
+
+@code {
+    private List<TipoItemDto>? TiposItem;
+    private List<MenuItemDto>? Menu;
+    private PedidoGetResponseDto? PedidoAtual;
+    private TipoItemDto? TipoSelecionado;
+    private string TermoBusca = "";
+    private bool Carregando = false;
+    private string MensagemErro = "";
+    private string MensagemSucesso = "";
+    private List<PedidoAnteriorItemDto> PedidosAnterioresCarregados = new();
+
+    private const string ChavePedidosAnteriores = "pedidos_hamburger";
+
+    private class PedidoCacheItem
+    {
+        public string Id { get; set; } = "";
+        public string DataHora { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await CarregarPedidosAnteriores();
+        StateHasChanged();
+    }
+
+    private async Task CarregarDados()
+    {
+        var tipos = await CardapioService.GetTiposItemAsync();
+        TiposItem = tipos;
+
+        var menu = await CardapioService.GetMenuAsync();
+        Menu = menu;
+    }
+
+    private List<PedidoAnteriorItemDto> PedidosAnterioresFiltrados =>
+        PedidosAnterioresCarregados
+            .Where(p => PedidoAtual == null || p.Id != PedidoAtual.Id)
+            .ToList();
+
+    private List<MenuItemDto> MenuFiltrado
+    {
+        get
+        {
+            if (Menu == null) return new();
+
+            var filtrado = Menu;
+
+            if (!string.IsNullOrEmpty(TermoBusca))
+            {
+                var termo = TermoBusca.ToLower();
+                filtrado = filtrado.Where(m => m.Nome?.ToLower().Contains(termo) ?? false).ToList();
+            }
+
+            return filtrado;
+        }
+    }
+
+    private async Task OnSelecionarTipo(TipoItemDto? tipo)
+    {
+        try
+        {
+            LimparMensagens();
+            TipoSelecionado = tipo;
+            Menu = null;
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Chamando GetMenuAsync com tipoItemId: {tipo?.Id}");
+            var menu = await CardapioService.GetMenuAsync(tipo?.Id);
+            Menu = menu;
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Menu carregado com {menu?.Count ?? 0} itens");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Erro: {ex.Message}");
+            MensagemErro = "Erro ao carregar produtos filtrados";
+        }
+    }
+
+    private void OnBuscaChange(string? termo)
+    {
+        TermoBusca = termo ?? "";
+    }
+
+    private async Task AdicionarAoCarrinho(int produtoId)
+    {
+        try
+        {
+            LimparMensagens();
+            Carregando = true;
+
+            if (PedidoAtual == null)
+            {
+                var (sucesso, id, erro) = await PedidoService.CriarPedidoAsync();
+                if (!sucesso)
+                {
+                    MensagemErro = erro ?? "Erro ao criar pedido";
+                    return;
+                }
+
+                PedidoAtual = new PedidoGetResponseDto
+                {
+                    Id = id.Value,
+                    Itens = new()
+                };
+
+                await SalvarPedidoNoCache(id.Value);
+            }
+
+            var (sucessoAdd, erroAdd) = await PedidoService.AdicionarItemAsync(PedidoAtual.Id, produtoId);
+            if (!sucessoAdd)
+            {
+                MensagemErro = erroAdd ?? "Erro ao adicionar item";
+                return;
+            }
+
+            await AtualizarPedido();
+            MensagemSucesso = "Item adicionado com sucesso!";
+            await AguardarELimparMensagem();
+        }
+        finally
+        {
+            Carregando = false;
+        }
+    }
+
+    private async Task RemoverItem(int itemId)
+    {
+        try
+        {
+            LimparMensagens();
+            Carregando = true;
+
+            var (sucesso, erro) = await PedidoService.RemoverItemAsync(PedidoAtual.Id, itemId);
+            if (!sucesso)
+            {
+                MensagemErro = erro ?? "Erro ao remover item";
+                return;
+            }
+
+            await AtualizarPedido();
+        }
+        finally
+        {
+            Carregando = false;
+        }
+    }
+
+    private async Task FecharPedido()
+    {
+        try
+        {
+            LimparMensagens();
+            Carregando = true;
+
+            var (sucesso, erro) = await PedidoService.FecharPedidoAsync(PedidoAtual.Id);
+            if (!sucesso)
+            {
+                MensagemErro = erro ?? "Erro ao fechar pedido";
+                return;
+            }
+
+            MensagemSucesso = "Pedido finalizado com sucesso!";
+            await RemoverPedidoDoCache(PedidoAtual.Id);
+            PedidoAtual = null;
+            await AguardarELimparMensagem();
+        }
+        finally
+        {
+            Carregando = false;
+        }
+    }
+
+    private async Task CancelarPedido()
+    {
+        try
+        {
+            LimparMensagens();
+            Carregando = true;
+
+            var (sucesso, erro) = await PedidoService.CancelarPedidoAsync(PedidoAtual.Id);
+            if (!sucesso)
+            {
+                MensagemErro = erro ?? "Erro ao cancelar pedido";
+                return;
+            }
+
+            MensagemSucesso = "Pedido cancelado";
+            await RemoverPedidoDoCache(PedidoAtual.Id);
+            PedidoAtual = null;
+            await AguardarELimparMensagem();
+        }
+        finally
+        {
+            Carregando = false;
+        }
+    }
+
+    private async Task AtualizarPedido()
+    {
+        var (sucesso, pedido, erro) = await PedidoService.ObterPedidoAsync(PedidoAtual.Id);
+        if (sucesso)
+        {
+            PedidoAtual = pedido;
+            await SalvarPedidoNoCache(PedidoAtual.Id);
+        }
+        else
+        {
+            MensagemErro = erro ?? "Erro ao atualizar pedido";
+        }
+    }
+
+    private async Task SelecionarPedidoAnterior(Guid pedidoId)
+    {
+        try
+        {
+            LimparMensagens();
+            Carregando = true;
+
+            var (sucesso, pedido, erro) = await PedidoService.ObterPedidoAsync(pedidoId);
+            if (!sucesso)
+            {
+                MensagemErro = erro ?? "Erro ao carregar pedido";
+                return;
+            }
+
+            PedidoAtual = pedido;
+            MensagemSucesso = "Pedido carregado com sucesso!";
+            await AguardarELimparMensagem();
+        }
+        finally
+        {
+            Carregando = false;
+        }
+    }
+
+    private async Task CarregarPedidosAnteriores()
+    {
+        try
+        {
+            var pedidosJson = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", ChavePedidosAnteriores);
+            if (string.IsNullOrEmpty(pedidosJson)) return;
+
+            var cache = System.Text.Json.JsonSerializer.Deserialize<List<PedidoCacheItem>>(pedidosJson);
+            if (cache == null || cache.Count == 0) return;
+
+            PedidosAnterioresCarregados = new();
+            var idsParaRemoverDoCache = new List<string>();
+
+            foreach (var item in cache)
+            {
+                if (Guid.TryParse(item.Id, out var id))
+                {
+                    var (sucesso, pedido, _) = await PedidoService.ObterPedidoAsync(id);
+                    if (sucesso && pedido != null && !pedido.Fechado)
+                    {
+                        PedidosAnterioresCarregados.Add(new PedidoAnteriorItemDto
+                        {
+                            Id = id,
+                            DataHora = item.DataHora,
+                            QuantidadeItens = pedido.Itens?.Count ?? 0,
+                            ValorFinal = pedido.ValorFinal
+                        });
+                    }
+                    else if (sucesso && pedido?.Fechado == true)
+                    {
+                        idsParaRemoverDoCache.Add(item.Id);
+                    }
+                }
+            }
+
+            if (idsParaRemoverDoCache.Count > 0)
+            {
+                cache.RemoveAll(c => idsParaRemoverDoCache.Contains(c.Id));
+                var jsonAtualizado = System.Text.Json.JsonSerializer.Serialize(cache);
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", ChavePedidosAnteriores, jsonAtualizado);
+            }
+        }
+        catch
+        {
+            // Ignorar erros ao carregar pedidos anteriores
+        }
+    }
+
+    private async Task SalvarPedidoNoCache(Guid pedidoId)
+    {
+        try
+        {
+            var pedidosJson = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", ChavePedidosAnteriores);
+            var cache = string.IsNullOrEmpty(pedidosJson)
+                ? new List<PedidoCacheItem>()
+                : System.Text.Json.JsonSerializer.Deserialize<List<PedidoCacheItem>>(pedidosJson) ?? new();
+
+            if (!cache.Any(c => c.Id == pedidoId.ToString()))
+            {
+                cache.Add(new PedidoCacheItem
+                {
+                    Id = pedidoId.ToString(),
+                    DataHora = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                });
+                var json = System.Text.Json.JsonSerializer.Serialize(cache);
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", ChavePedidosAnteriores, json);
+            }
+        }
+        catch
+        {
+            // Ignorar erros ao salvar no cache
+        }
+    }
+
+    private async Task RemoverPedidoDoCache(Guid pedidoId)
+    {
+        try
+        {
+            var pedidosJson = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", ChavePedidosAnteriores);
+            if (string.IsNullOrEmpty(pedidosJson)) return;
+
+            var cache = System.Text.Json.JsonSerializer.Deserialize<List<PedidoCacheItem>>(pedidosJson) ?? new();
+            cache.RemoveAll(c => c.Id == pedidoId.ToString());
+
+            var json = System.Text.Json.JsonSerializer.Serialize(cache);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", ChavePedidosAnteriores, json);
+
+            await CarregarPedidosAnteriores();
+        }
+        catch
+        {
+            // Ignorar erros ao remover do cache
+        }
+    }
+
+    private void LimparMensagens()
+    {
+        MensagemErro = "";
+        MensagemSucesso = "";
+    }
+
+    private async Task AguardarELimparMensagem()
+    {
+        await Task.Delay(3000);
+        MensagemSucesso = "";
+    }
+}

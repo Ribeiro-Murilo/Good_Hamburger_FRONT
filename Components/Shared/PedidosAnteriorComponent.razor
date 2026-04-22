@@ -1,0 +1,29 @@
+@using GoodHamburgerFront.Models
+
+@if (PedidosAnteriores != null && PedidosAnteriores.Count > 0)
+{
+    <div class="pedidos-anteriores">
+        <div class="pedidos-anteriores-title">Pedidos em Aberto</div>
+        @foreach (var pedido in PedidosAnteriores)
+        {
+            <div class="pedido-anterior-item" @onclick="@(() => OnSelecionarPedido(pedido.Id))">
+                <div class="pedido-anterior-data">@pedido.DataHora</div>
+                <div class="pedido-anterior-itens">@pedido.QuantidadeItens item(ns)</div>
+                <div class="pedido-anterior-valor">R$ @pedido.ValorFinal.ToString("F2")</div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<PedidoAnteriorItemDto>? PedidosAnteriores { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnSelecionarPedidoCallback { get; set; }
+
+    private async Task OnSelecionarPedido(Guid pedidoId)
+    {
+        await OnSelecionarPedidoCallback.InvokeAsync(pedidoId);
+    }
+}
