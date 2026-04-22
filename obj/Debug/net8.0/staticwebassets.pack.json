@@ -1,0 +1,41 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/obj/Debug/net8.0/scopedcss/projectbundle/GoodHamburgerFront.bundle.scp.css",
+      "PackagePath": "staticwebassets/GoodHamburgerFront.bundle.scp.css"
+    },
+    {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/app.css",
+      "PackagePath": "staticwebassets/app.css"
+    },
+    {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/bootstrap/bootstrap.min.css",
+      "PackagePath": "staticwebassets/bootstrap/bootstrap.min.css"
+    },
+    {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/bootstrap/bootstrap.min.css.map",
+      "PackagePath": "staticwebassets/bootstrap/bootstrap.min.css.map"
+    },
+    {
+      "Id": "/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/wwwroot/favicon.png",
+      "PackagePath": "staticwebassets/favicon.png"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.GoodHamburgerFront.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.GoodHamburgerFront.props",
+      "PackagePath": "build\\GoodHamburgerFront.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.GoodHamburgerFront.props",
+      "PackagePath": "buildMultiTargeting\\GoodHamburgerFront.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.GoodHamburgerFront.props",
+      "PackagePath": "buildTransitive\\GoodHamburgerFront.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
