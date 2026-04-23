@@ -38,6 +38,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvQ2FycmluaG9Db21wb25lbnQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/Components/Shared/LoadingOverlay.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvTG9hZGluZ092ZXJsYXkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/Components/Shared/PedidosAnteriorComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvUGVkaWRvc0FudGVyaW9yQ29tcG9uZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

@@ -5,8 +5,10 @@
 @using GoodHamburgerFront.Components.Shared
 @inject CardapioService CardapioService
 @inject PedidoService PedidoService
+@inject LoadingService LoadingService
 @inject IJSRuntime JSRuntime
 
+<LoadingOverlay />
 
 <div class="container-principal">
     <div class="secao-menu">
@@ -143,11 +145,19 @@
 
     private async Task CarregarDados()
     {
-        var tipos = await CardapioService.GetTiposItemAsync();
-        TiposItem = tipos;
+        LoadingService.Increment();
+        try
+        {
+            var tipos = await CardapioService.GetTiposItemAsync();
+            TiposItem = tipos;
 
-        var menu = await CardapioService.GetMenuAsync();
-        Menu = menu;
+            var menu = await CardapioService.GetMenuAsync();
+            Menu = menu;
+        }
+        finally
+        {
+            LoadingService.Decrement();
+        }
     }
 
     private List<PedidoAnteriorItemDto> PedidosAnterioresFiltrados =>
@@ -175,6 +185,7 @@
 
     private async Task OnSelecionarTipo(TipoItemDto? tipo)
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -192,6 +203,10 @@
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Erro: {ex.Message}");
             MensagemErro = "Erro ao carregar produtos filtrados";
         }
+        finally
+        {
+            LoadingService.Decrement();
+        }
     }
 
     private void OnBuscaChange(string? termo)
@@ -201,6 +216,7 @@
 
     private async Task AdicionarAoCarrinho(int produtoId)
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -238,11 +254,13 @@
         finally
         {
             Carregando = false;
+            LoadingService.Decrement();
         }
     }
 
     private async Task RemoverItem(int itemId)
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -260,11 +278,13 @@
         finally
         {
             Carregando = false;
+            LoadingService.Decrement();
         }
     }
 
     private async Task FecharPedido()
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -285,11 +305,13 @@
         finally
         {
             Carregando = false;
+            LoadingService.Decrement();
         }
     }
 
     private async Task CancelarPedido()
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -310,6 +332,7 @@
         finally
         {
             Carregando = false;
+            LoadingService.Decrement();
         }
     }
 
@@ -329,6 +352,7 @@
 
     private async Task SelecionarPedidoAnterior(Guid pedidoId)
     {
+        LoadingService.Increment();
         try
         {
             LimparMensagens();
@@ -348,11 +372,13 @@
         finally
         {
             Carregando = false;
+            LoadingService.Decrement();
         }
     }
 
     private async Task CarregarPedidosAnteriores()
     {
+        LoadingService.Increment();
         try
         {
             var pedidosJson = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", ChavePedidosAnteriores);
@@ -426,6 +452,10 @@
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("console.error", "[PedidosAnteriores] Erro:", ex.Message);
+        }
+        finally
+        {
+            LoadingService.Decrement();
         }
     }
 

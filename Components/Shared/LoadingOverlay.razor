@@ -1,0 +1,27 @@
+@using GoodHamburgerFront.Services
+@inject LoadingService LoadingService
+@implements IDisposable
+
+@if (LoadingService.IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-overlay-spinner"></div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        LoadingService.OnChange += OnLoadingChanged;
+    }
+
+    private void OnLoadingChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        LoadingService.OnChange -= OnLoadingChanged;
+    }
+}

@@ -9,6 +9,8 @@ var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localho
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<LoadingService>();
+
 builder.Services.AddHttpClient<CardapioService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
