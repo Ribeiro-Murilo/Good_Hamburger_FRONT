@@ -27,3 +27,4 @@
 /Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/obj/Debug/net8.0/GoodHamburgerFront.pdb
 /Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/obj/Debug/net8.0/GoodHamburgerFront.genruntimeconfig.cache
 /Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/obj/Debug/net8.0/ref/GoodHamburgerFront.dll
+/Users/mac/Repositorios/Good_Hamburger/Good_Hamburger_FRONT/obj/Debug/net8.0/GoodHamburgerFront.sourcelink.json

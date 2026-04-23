@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GoodHamburgerFront")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8952ebddbb42b984ca5e2437c02460698dfb9a44")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+78876b0baaebc8c73c4902c9d2909351b9311120")]
 [assembly: System.Reflection.AssemblyProductAttribute("GoodHamburgerFront")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GoodHamburgerFront")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

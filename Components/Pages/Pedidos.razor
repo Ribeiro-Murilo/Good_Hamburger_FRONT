@@ -356,9 +356,34 @@
         try
         {
             var pedidosJson = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", ChavePedidosAnteriores);
+            await JSRuntime.InvokeVoidAsync("console.log", "[PedidosAnteriores] JSON do localStorage:", pedidosJson ?? "(vazio)");
+
             if (string.IsNullOrEmpty(pedidosJson)) return;
 
-            var cache = System.Text.Json.JsonSerializer.Deserialize<List<PedidoCacheItem>>(pedidosJson);
+            List<PedidoCacheItem>? cache;
+            try
+            {
+                cache = System.Text.Json.JsonSerializer.Deserialize<List<PedidoCacheItem>>(pedidosJson);
+            }
+            catch
+            {
+                // Formato antigo: array de strings com apenas o GUID
+                var ids = System.Text.Json.JsonSerializer.Deserialize<List<string>>(pedidosJson);
+                cache = ids?
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .Select(id => new PedidoCacheItem { Id = id, DataHora = "" })
+                    .ToList();
+
+                // Migra para o novo formato imediatamente
+                if (cache != null && cache.Count > 0)
+                {
+                    var jsonNovo = System.Text.Json.JsonSerializer.Serialize(cache);
+                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", ChavePedidosAnteriores, jsonNovo);
+                }
+            }
+
+            await JSRuntime.InvokeVoidAsync("console.log", "[PedidosAnteriores] Itens no cache:", cache?.Count ?? 0);
+
             if (cache == null || cache.Count == 0) return;
 
             PedidosAnterioresCarregados = new();
@@ -368,7 +393,10 @@
             {
                 if (Guid.TryParse(item.Id, out var id))
                 {
-                    var (sucesso, pedido, _) = await PedidoService.ObterPedidoAsync(id);
+                    var (sucesso, pedido, erro) = await PedidoService.ObterPedidoAsync(id);
+                    await JSRuntime.InvokeVoidAsync("console.log",
+                        $"[PedidosAnteriores] Pedido {id}: sucesso={sucesso}, fechado={pedido?.Fechado}, itens={pedido?.Itens?.Count}, erro={erro}");
+
                     if (sucesso && pedido != null && !pedido.Fechado)
                     {
                         PedidosAnterioresCarregados.Add(new PedidoAnteriorItemDto
@@ -386,6 +414,8 @@
                 }
             }
 
+            await JSRuntime.InvokeVoidAsync("console.log", "[PedidosAnteriores] Total em aberto:", PedidosAnterioresCarregados.Count);
+
             if (idsParaRemoverDoCache.Count > 0)
             {
                 cache.RemoveAll(c => idsParaRemoverDoCache.Contains(c.Id));
@@ -393,9 +423,9 @@
                 await JSRuntime.InvokeVoidAsync("localStorage.setItem", ChavePedidosAnteriores, jsonAtualizado);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignorar erros ao carregar pedidos anteriores
+            await JSRuntime.InvokeVoidAsync("console.error", "[PedidosAnteriores] Erro:", ex.Message);
         }
     }
 
